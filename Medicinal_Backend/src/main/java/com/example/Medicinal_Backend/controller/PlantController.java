@@ -36,7 +36,9 @@ public class PlantController {
     public void deletePlant(@PathVariable Long id) {
         plantService.deletePlant(id);
     }
-    @PostMapping("/identify")
+
+    // ✅ renamed endpoint to avoid conflict
+    @PostMapping("/identify/list")
     public List<Plant> identifyPlants(@RequestBody List<String> detectedPlantNames) {
         // detectedPlantNames comes from your ML model output
         return plantService.getPlantsByNames(detectedPlantNames);

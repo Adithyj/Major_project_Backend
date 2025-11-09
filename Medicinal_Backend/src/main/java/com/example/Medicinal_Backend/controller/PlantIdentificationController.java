@@ -21,25 +21,29 @@ public class PlantIdentificationController {
     @Autowired
     private PlantRepository plantRepository;
 
+    // ✅ Keep this endpoint for image uploads only
     @PostMapping("/identify")
     public ResponseEntity<?> identifyPlant(@RequestParam("image") MultipartFile file) {
         try {
             List<String> detectedLabels = visionService.detectLabels(file.getBytes());
+
             if (detectedLabels.isEmpty()) {
                 return ResponseEntity.ok(Collections.singletonMap("message", "No plant detected."));
             }
 
-            // Find matching plants in DB (case-insensitive partial match)
+            // Match detected labels with DB entries (case-insensitive)
             List<Plant> matchedPlants = plantRepository.findAll().stream()
                     .filter(p -> detectedLabels.stream()
-                            .anyMatch(label -> label.toLowerCase().contains(p.getPlantName().toLowerCase())
-                                    || p.getPlantName().toLowerCase().contains(label.toLowerCase())))
+                            .anyMatch(label ->
+                                    label.toLowerCase().contains(p.getPlantName().toLowerCase()) ||
+                                    p.getPlantName().toLowerCase().contains(label.toLowerCase())))
                     .toList();
 
             if (matchedPlants.isEmpty()) {
                 return ResponseEntity.ok(Collections.singletonMap("message", "No matching plants found in database."));
             }
 
+            // ✅ Return plants with image URLs (already part of your Plant model)
             return ResponseEntity.ok(matchedPlants);
 
         } catch (Exception e) {
@@ -48,4 +52,3 @@ public class PlantIdentificationController {
         }
     }
 }
-
